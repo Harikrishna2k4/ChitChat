@@ -24,3 +24,10 @@ app.use(express.json());
 app.listen(PORT, () => {
     connectdb();
 });
+
+process.once('SIGUSR2', () => {
+    server.close(() => {
+        console.log('Server closed on port ' + PORT + ' (Nodemon restart)');
+        process.kill(process.pid, 'SIGUSR2');
+    });
+});
