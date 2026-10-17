@@ -1,0 +1,45 @@
+import { generateToken } from "../lib/utils.js";
+import User from "../models/User.js";
+import bcrypt from "bcryptjs"
+export async function signup(req,res){
+    const {fullName, email, password} = req.body;
+    try {
+        if(!password || !email || !fullName){
+            return res.status(400).json({message: "all fields are required"});
+        }
+        if(password.length < 6){
+            return res.status(400).json({message: "Password must be atleast 6 characters"});
+        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if(!emailRegex.test(email)){
+            return res.status(400).json({message: "enter a valid email"});
+        }
+        const user = await User.findOne({email});
+        if(user){
+            return res.status(400).json({message: "This email already exist"});
+        }
+        const salt = await bcrypt.genSalt(10);
+        const hashedpassword = await bcrypt.hash(password, salt);
+        const newuser = new User({
+            fullName,
+            email,
+            password: hashedpassword
+        });
+        if(newuser){
+            generateToken(newuser._id, res);
+            await newuser.save();
+            res.status(201).json({
+                _id: newuser._id,
+                fullName: newuser.fullName,
+                email: newuser.email,
+                profilePic: newuser.profilePic
+            })
+        }else{
+            res.status(400).json({message: "Invalid user data"});
+        }
+
+    } catch (error) {
+        console.log("error in sign up controller:", error);
+        res.status(500).json({message:"Internal server error"});
+    }
+}
