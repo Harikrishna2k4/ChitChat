@@ -33,17 +33,18 @@ export async function signup(req,res){
         if(newuser){
             const saveduser = await newuser.save();
             generateToken(saveduser._id, res);
+            try{
+                await sendWelcomeEmail(saveduser.email, saveduser.fullName, ENV.CLIENT_URL);
+            } catch(error){
+                console.error("failed to send welcome email;", error);
+            }
             res.status(201).json({
                 _id: newuser._id,
                 fullName: newuser.fullName,
                 email: newuser.email,
                 profilePic: newuser.profilePic
             });
-            try{
-                await sendWelcomeEmail(saveduser.email, saveduser.fullName, ENV.CLIENT_URL);
-            } catch(error){
-                console.error("failed to send welcome email;", error);
-            }
+            
 
         }else{
             res.status(400).json({message: "Invalid user data"});

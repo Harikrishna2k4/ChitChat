@@ -47,10 +47,17 @@ export async function sendMessage(req, res) {
             return res.status(404).json({ message: "Receiver not found." });
         }
 
-        let imageUrl;
+        let imageUrl = null;
         if(image){
-            const uploadResponse = await cloudinary.uploader.upload(image);
-            imageUrl = uploadResponse.secure_url;
+            try {
+                const uploadResponse = await cloudinary.uploader.upload(image, {
+                    resource_type: "auto" 
+                });
+                imageUrl = uploadResponse.secure_url;
+            } catch (cloudinaryError) {
+                console.error("Cloudinary Engine Rejection Error:", cloudinaryError.message);
+                return res.status(400).json({ message: "Image format processing failed on Cloudinary." });
+            }
         }
         const newMessage = new Message({
             senderId,
