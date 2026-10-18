@@ -7,8 +7,9 @@ import { ENV } from "./lib/env.js";
 import cookieParser from "cookie-parser";
 
 const app = express();
-app.use(express.json());
 app.use(cookieParser());
+app.use(express.json());
+
 const __dirname = path.resolve();
 
 app.use("/api/auth", authRoute);
@@ -22,14 +23,21 @@ if(ENV.NODE_ENV === "production"){
 }
 
 const PORT = ENV.PORT || 3000;
-app.use(express.json());
-app.listen(PORT, () => {
+
+// 💡 FIX 1: Assign app.listen to the 'server' variable so nodemon can close it
+const server = app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
     connectdb();
 });
 
+// 💡 FIX 2: Added a safety check to ensure 'server' exists before closing
 process.once('SIGUSR2', () => {
-    server.close(() => {
-        console.log('Server closed on port ' + PORT + ' (Nodemon restart)');
+    if (server) {
+        server.close(() => {
+            console.log('Server closed on port ' + PORT + ' (Nodemon restart)');
+            process.kill(process.pid, 'SIGUSR2');
+        });
+    } else {
         process.kill(process.pid, 'SIGUSR2');
-    });
+    }
 });
