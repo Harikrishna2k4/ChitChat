@@ -4,9 +4,11 @@ import messageRoute from "./routes/message.route.js";
 import path from "path";
 import { connectdb } from "./lib/db.js";
 import { ENV } from "./lib/env.js";
+import cookieParser from "cookie-parser";
 
 const app = express();
 app.use(express.json());
+app.use(cookieParser());
 const __dirname = path.resolve();
 
 app.use("/api/auth", authRoute);
