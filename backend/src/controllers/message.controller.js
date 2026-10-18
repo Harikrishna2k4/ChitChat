@@ -50,8 +50,12 @@ export async function sendMessage(req, res) {
         let imageUrl = null;
         if(image){
             try {
-                const uploadResponse = await cloudinary.uploader.upload(image, {
-                    resource_type: "auto" 
+                let cleanImagePayload = image;
+                if (!image.startsWith("data:image")) {
+                    cleanImagePayload = `data:image/jpeg;base64,${image}`;
+                }
+                const uploadResponse = await cloudinary.uploader.upload(cleanImagePayload, {
+                    resource_type: "image"
                 });
                 imageUrl = uploadResponse.secure_url;
             } catch (cloudinaryError) {
