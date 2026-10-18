@@ -48,19 +48,21 @@ export async function sendMessage(req, res) {
         }
 
         let imageUrl = null;
-        if(image){
+        if (image) {
+            if (!/^data:image\/(png|jpe?g|webp|gif);base64,/.test(image)) {
+                return res.status(400).json({ message: "Image must be a base64 data URL (png, jpg, webp, gif)." });
+            }
             try {
-                let cleanImagePayload = image;
-                if (!image.startsWith("data:image")) {
-                    cleanImagePayload = `data:image/jpeg;base64,${image}`;
-                }
-                const uploadResponse = await cloudinary.uploader.upload(cleanImagePayload, {
-                    resource_type: "image"
+                const uploadResponse = await cloudinary.uploader.upload(image, {
+                    resource_type: "image",
                 });
                 imageUrl = uploadResponse.secure_url;
             } catch (cloudinaryError) {
-                console.error("Cloudinary Engine Rejection Error:", cloudinaryError.message);
-                return res.status(400).json({ message: "Image format processing failed on Cloudinary." });
+                console.error("Cloudinary upload failed:", cloudinaryError); // log the full error
+                return res.status(502).json({
+                    message: "Image upload failed.",
+                    detail: cloudinaryError.message,
+                });
             }
         }
         const newMessage = new Message({
