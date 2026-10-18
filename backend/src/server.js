@@ -5,21 +5,25 @@ import path from "path";
 import { connectdb } from "./lib/db.js";
 import { ENV } from "./lib/env.js";
 import cookieParser from "cookie-parser";
+import { fileURLToPath } from "url";
 
 const app = express();
 app.use(cookieParser());
 app.use(express.json());
 
-const __dirname = path.resolve();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 app.use("/api/auth", authRoute);
 app.use("/api/messages", messageRoute);
 
 if(ENV.NODE_ENV === "production"){
-    app.use(express.static(path.join(__dirname,"..", "frontend", "dist")));
-    app.get("*", (_,res) => {
-        res.sendFile(path.join(__dirname,"..", "frontend", "dist", "index.html"));
-    })
+    const frontendDistPath = path.join(__dirname, "..", "..", "frontend", "dist");
+    
+    app.use(express.static(frontendDistPath));
+    app.get("*", (_, res) => {
+        res.sendFile(path.join(frontendDistPath, "index.html"));
+    });
 }
 
 const PORT = ENV.PORT || 3000;
