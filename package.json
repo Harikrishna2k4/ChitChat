@@ -4,7 +4,7 @@
   "main": "server.js",
   "scripts": {
     "dev": "npm run dev --prefix backend",
-    "build": "npm install && cd frontend && npm install --production=false && npm run build",
+    "build": "npm install --prefix backend && cd frontend && npm install --production=false && npm run build",
     "start": "node backend/src/server.js"
   },
   "keywords": [],
