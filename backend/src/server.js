@@ -9,7 +9,8 @@ import { fileURLToPath } from "url";
 
 const app = express();
 app.use(cookieParser());
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,7 +20,6 @@ app.use("/api/messages", messageRoute);
 
 if(ENV.NODE_ENV === "production"){
     const frontendDistPath = path.join(__dirname, "..", "..", "frontend", "dist");
-    
     app.use(express.static(frontendDistPath));
     app.get("*", (_, res) => {
         res.sendFile(path.join(frontendDistPath, "index.html"));
@@ -27,14 +27,10 @@ if(ENV.NODE_ENV === "production"){
 }
 
 const PORT = ENV.PORT || 3000;
-
-// 💡 FIX 1: Assign app.listen to the 'server' variable so nodemon can close it
 const server = app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
     connectdb();
 });
-
-// 💡 FIX 2: Added a safety check to ensure 'server' exists before closing
 process.once('SIGUSR2', () => {
     if (server) {
         server.close(() => {
