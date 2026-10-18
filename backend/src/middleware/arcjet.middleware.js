@@ -1,7 +1,7 @@
 import aj from "../lib/arcjet.js";
 import { isSpoofedBot } from "@arcjet/inspect";
 
-export function arcjetProtection(req, res, next){
+export async function arcjetProtection(req, res, next){
     try {
         const decision = await aj.protect(req);
         if(decision.isDenied()){
