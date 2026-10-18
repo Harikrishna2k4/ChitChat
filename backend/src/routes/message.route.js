@@ -11,4 +11,3 @@ router.get("/:id", getMessagesByUserId);
 router.post("/send/:id", sendMessage);
 
 export default router;
-
