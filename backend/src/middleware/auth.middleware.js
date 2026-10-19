@@ -8,13 +8,17 @@ export async function protectRoute(req, res, next){
         if(!token){
             return res.status(401).json({message: "unauthorized - No token provided"});
         }
-        const decoded = jwt.verify(token, ENV.JWT_SECRET);
-        if(!decoded){
-            return res.status(401).json({message: "unauthorized - Invalid token"});
+        let decoded;
+        try {
+            decoded = jwt.verify(token, ENV.JWT_SECRET);
+        } catch (error) {
+            return res.status(401).json({
+                message: "Unauthorized - Invalid or expired token",
+            });
         }
         const user = await User.findById(decoded.userId).select("-password");
         if(!user){
-            return res.status(404).json({message: "User not found"}); 
+            return res.status(401).json({message: "User not found"}); 
         }
         req.user = user;
         next();

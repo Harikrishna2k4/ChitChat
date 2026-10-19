@@ -8,21 +8,24 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: [ENV.CLIENT_URL],
+        origin: [ENV.CLIENT_URL, "http://localhost:5173"],
         credentials: true,
     }
 });
 
 io.use(socketAuthMiddleware);
+export function getRecieverSocketId(userId){
+    return userSocketMap[userId];
+}
 
 const userSocketMap = {};
 io.on("connection", (socket) => {
-    console.log("a user connected", socket.user.fullname);
+    console.log("a user connected", socket.user.fullName);
     const userId = socket.userId;
     userSocketMap[userId] = socket.id;
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
     socket.on("disconnect", () => {
-        console.log("a user disconnected", socket.user.fullname);
+        console.log("a user disconnected", socket.user.fullName);
         delete userSocketMap[userId];
     })
     io.emit("getOnlineUsers", Object.keys(userSocketMap));

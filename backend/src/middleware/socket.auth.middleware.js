@@ -5,7 +5,7 @@ import { ENV } from "../lib/env.js";
 export async function socketAuthMiddleware(socket, next){
     try {
         const token = socket.handshake.headers.cookie
-        ?.split("; ").find((row) => row.startswith("jwt="))?.split('=')(1);
+        ?.split("; ").find((row) => row.startsWith("jwt="))?.split("=")[1];
         
         if(!token){
             console.log("Socket connection rejected: No tokens provided");
@@ -13,7 +13,7 @@ export async function socketAuthMiddleware(socket, next){
         }
         const decoded = jwt.verify(token, ENV.JWT_SECRET);
         if(!decoded){
-            return res.status(401).json({message: "unauthorized - Invalid token"});
+            return next(new Error("Unauthorized - Invalid token"));
         }
         const user = await User.findById(decoded.userId).select("-password");
         if(!user){
@@ -24,7 +24,6 @@ export async function socketAuthMiddleware(socket, next){
         socket.userId = user._id.toString();
         console.log(`Socket  authenticated for user: ${user.fullName} (${user._id})`);
         next();
-        
     } catch (error) {
         console.log("error in socket authentication", error.message);
         next(new Error("Unauthorized - authentication failed")); 
