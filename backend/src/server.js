@@ -6,8 +6,9 @@ import { connectdb } from "./lib/db.js";
 import { ENV } from "./lib/env.js";
 import cookieParser from "cookie-parser";
 import { fileURLToPath } from "url";
+import { app, server } from "./lib/socket.js";
 
-const app = express();
+
 app.use(cookieParser());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
@@ -27,13 +28,13 @@ if(ENV.NODE_ENV === "production"){
 }
 
 const PORT = ENV.PORT || 3000;
-const server = app.listen(PORT, () => {
+const Server = server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
     connectdb();
 });
 process.once('SIGUSR2', () => {
-    if (server) {
-        server.close(() => {
+    if (Server) {
+        Server.close(() => {
             console.log('Server closed on port ' + PORT + ' (Nodemon restart)');
             process.kill(process.pid, 'SIGUSR2');
         });
